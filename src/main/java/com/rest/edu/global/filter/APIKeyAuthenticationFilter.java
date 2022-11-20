@@ -1,23 +1,16 @@
 package com.rest.edu.global.filter;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.web.authentication.preauth.AbstractPreAuthenticatedProcessingFilter;
 
 import javax.servlet.http.HttpServletRequest;
 
 public class APIKeyAuthenticationFilter extends AbstractPreAuthenticatedProcessingFilter {
 
-    private String principalRequestHeader;
-
-    @Autowired
-    public APIKeyAuthenticationFilter(String principalRequestHeader) {
-        this.principalRequestHeader = principalRequestHeader;
-    }
+    private static final String API_AUTH_KEY_HEADER_VALUE = "Authorization";
 
     @Override
     protected Object getPreAuthenticatedPrincipal(HttpServletRequest request) {
-        return request.getHeader(principalRequestHeader);
+        return request.getHeader(API_AUTH_KEY_HEADER_VALUE);
     }
 
     @Override
@@ -25,8 +18,4 @@ public class APIKeyAuthenticationFilter extends AbstractPreAuthenticatedProcessi
         return "N/A";
     }
 
-    @Override
-    public void setAuthenticationManager(AuthenticationManager authenticationManager) {
-        super.setAuthenticationManager(authenticationManager);
-    }
 }
