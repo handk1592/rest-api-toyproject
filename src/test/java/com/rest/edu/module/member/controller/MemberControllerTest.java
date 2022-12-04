@@ -18,8 +18,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.filter.CharacterEncodingFilter;
 
 import static org.mockito.Mockito.*;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -58,7 +57,7 @@ class MemberControllerTest {
                             .age(32L)
                             .build();
 
-        doReturn(member).when(memberService).findMemberById(eq(id));
+        doReturn(member).when(memberService).getMemberById(eq(id));
 
         // when & then
         mockMvc.perform
@@ -71,8 +70,8 @@ class MemberControllerTest {
                 .andExpect(jsonPath("name").value("개발자_한"))
                 .andDo(print());
 
-        verify(memberService, atLeastOnce()).findMemberById(any(Long.class));
-        verify(memberService, times(1)).findMemberById(any(Long.class));
+        verify(memberService, atLeastOnce()).getMemberById(any(Long.class));
+        verify(memberService, times(1)).getMemberById(any(Long.class));
     }
 
     @Test
@@ -104,5 +103,45 @@ class MemberControllerTest {
 
         verify(memberService, atLeastOnce()).join(any(RequestMemberDto.class));
         verify(memberService, times(1)).join(any(RequestMemberDto.class));
+    }
+
+    @Test
+    @DisplayName("사용자 정보 수정 테스트")
+    void user_update_test() throws Exception {
+        // given
+        ObjectMapper objectMapper = new ObjectMapper();
+        RequestMemberDto requestMemberDto = RequestMemberDto.builder()
+                .name("개발자_한")
+                .age(32L)
+                .hp("000-0000-0000")
+                .build();
+
+        Member member = requestMemberDto.toEntity();
+        doReturn(member).when(memberService).updateMember(
+                any(Long.class),
+                refEq(
+                        requestMemberDto,
+                        requestMemberDto.getName(),
+                        Long.toString(requestMemberDto.getAge()),
+                        requestMemberDto.getHp()
+                )
+        );
+
+        // when & then
+        mockMvc.perform
+                (
+                        put("/member/users/1")
+                                .header(HttpHeaders.AUTHORIZATION, "Bearer test123")
+                                .contentType(MediaType.APPLICATION_JSON)//본문 요청에 json을 담아서 보내고 있다고 알려줌.
+                                .content(objectMapper.writeValueAsString(requestMemberDto))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("name").exists())
+                .andExpect(jsonPath("name").value("개발자_한"))
+                .andDo(print());
+
+
+        verify(memberService, atLeastOnce()).updateMember(any(Long.class), any(RequestMemberDto.class));
+        verify(memberService, times(1)).updateMember(any(Long.class),any(RequestMemberDto.class));
     }
 }

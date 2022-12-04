@@ -23,10 +23,35 @@ import static org.mockito.Mockito.*;
 @Transactional
 class MemberServiceTest {
     @Mock
-    private MemberRepository memberRepository;
+    private MemberRepository mockMemberRepository;
 
     @InjectMocks
-    private MemberService memberService;
+    private MemberService mockMemberService;
+
+    @Test
+    @DisplayName("사용자 조회 테스트")
+    void get_member_test() {
+        // given
+        Long id = 1l;
+        Optional<Member> member = Optional.of(Member.builder()
+                                                .name("개발자_한")
+                                                .age(32L)
+                                                .hp("000-0000-0000")
+                                                .email("test001@test.com")
+                                                .build());
+        
+        doReturn(member).when(mockMemberRepository).findById(any(Long.class));
+
+        // when
+        Member memberById = mockMemberService.getMemberById(id);
+
+        // then
+        assertThat(memberById.getName()).isEqualTo(member.orElseGet(() -> Member.builder().build()).getName());
+        assertThat(memberById.getAge()).isEqualTo(member.orElseGet(() -> Member.builder().build()).getAge());
+        assertThat(memberById.getEmail()).isEqualTo(member.orElseGet(() -> Member.builder().build()).getEmail());
+
+        verify(mockMemberRepository, times(1)).findById(any(Long.class));
+    }
 
     @Test
     @DisplayName("사용자 등록 테스트")
@@ -35,20 +60,20 @@ class MemberServiceTest {
         RequestMemberDto requestMemberDto = RequestMemberDto.builder()
                 .name("개발자_한")
                 .age(32L)
-                .hp("010-1111-2222")
+                .hp("000-0000-0000")
                 .email("test001@test.com")
                 .build();
 
         Member member = requestMemberDto.toEntity();
-        doReturn(member).when(memberRepository).save(any(Member.class));
+        doReturn(member).when(mockMemberRepository).save(any(Member.class));
 
         // when
-        Member savedMember = memberService.join(requestMemberDto);
+        Member savedMember = mockMemberService.join(requestMemberDto);
 
         // then
         assertThat(savedMember.getName()).isEqualTo(member.getName());
 
-        verify(memberRepository, times(1)).save(any(Member.class));
+        verify(mockMemberRepository, times(1)).save(any(Member.class));
     }
 
     @Test
@@ -58,16 +83,16 @@ class MemberServiceTest {
         RequestMemberDto requestMemberDto = RequestMemberDto.builder()
                 .name("개발자_한")
                 .age(32L)
-                .hp("010-1111-2222")
+                .hp("000-0000-0000")
                 .email("test001@test.com")
                 .build();
 
         Member member = requestMemberDto.toEntity();
-        doReturn(member).when(memberRepository).findByName(requestMemberDto.getName());
+        doReturn(member).when(mockMemberRepository).findByName(requestMemberDto.getName());
 
         // then
         assertThrows(BusinessException.class, () -> {
-            memberService.join(requestMemberDto);
+            mockMemberService.join(requestMemberDto);
         });
     }
 
@@ -80,27 +105,27 @@ class MemberServiceTest {
         Optional<Member> member = Optional.of(Member.builder()
                                                         .name("개발자_한")
                                                         .age(32L)
-                                                        .hp("010-1111-2222")
+                                                        .hp("000-0000-0000")
                                                         .email("test001@test.com")
                                                         .build());
 
         RequestMemberDto requestMemberDto = RequestMemberDto.builder()
                                                         .name("개발자_두덕")
                                                         .age(33L)
-                                                        .hp("010-2222-2222")
+                                                        .hp("000-0000-0001")
                                                         .build();
 
-        doReturn(member).when(memberRepository).findById(any(Long.class));
+        doReturn(member).when(mockMemberRepository).findById(any(Long.class));
 
         // when
-        Member updatedMember = memberService.updateMember(id, requestMemberDto);
+        Member updatedMember = mockMemberService.updateMember(id, requestMemberDto);
 
         // then
         assertThat(updatedMember.getName()).isEqualTo(requestMemberDto.getName());
         assertThat(updatedMember.getHp()).isEqualTo(requestMemberDto.getHp());
         assertThat(updatedMember.getAge()).isEqualTo(requestMemberDto.getAge());
 
-        verify(memberRepository, times(1)).findById(id);
+        verify(mockMemberRepository, times(1)).findById(id);
     }
 
     @Test
@@ -109,20 +134,20 @@ class MemberServiceTest {
         // given
         Long id = 1L;
 
-        doReturn(Optional.empty()).when(memberRepository).findById(any(Long.class));
+        doReturn(Optional.empty()).when(mockMemberRepository).findById(any(Long.class));
 
         // when & then
         assertThrows(BusinessException.class, () -> {
-            memberService.updateMember(
+            mockMemberService.updateMember(
                     1L, RequestMemberDto.builder()
                                 .name("개발자_두덕")
                                 .age(33L)
-                                .hp("010-2222-2222")
+                                .hp("000-0000-0001")
                                 .build()
             );
         });
 
-        verify(memberRepository, times(1)).findById(id);
+        verify(mockMemberRepository, times(1)).findById(id);
     }
 
 
@@ -134,31 +159,31 @@ class MemberServiceTest {
         Optional<Member> member = Optional.of(Member.builder()
                 .name("개발자_한")
                 .age(32L)
-                .hp("010-1111-2222")
+                .hp("000-0000-0000")
                 .email("test001@test.com")
                 .build());
 
-        doReturn(member).when(memberRepository).findById(any(Long.class));
+        doReturn(member).when(mockMemberRepository).findById(any(Long.class));
 
         // when
-        Member deleteMember = memberService.deleteMember(id);
+        Member deleteMember = mockMemberService.deleteMember(id);
         assertThat(deleteMember.getName()).isEqualTo(member.get().getName());
 
 
-        verify(memberRepository, times(1)).findById(id);
+        verify(mockMemberRepository, times(1)).findById(id);
     }
 
     @Test
     @DisplayName("사용자 정보 삭제 테스트")
     void delete_none_member_test() {
         // given
-        doReturn(Optional.empty()).when(memberRepository).findById(any(Long.class));
+        doReturn(Optional.empty()).when(mockMemberRepository).findById(any(Long.class));
 
         // when & then
         assertThrows(BusinessException.class, () -> {
-            memberService.deleteMember(1l);
+            mockMemberService.deleteMember(1l);
         });
 
-        verify(memberRepository, times(1)).findById(any(Long.class));
+        verify(mockMemberRepository, times(1)).findById(any(Long.class));
     }
 }

@@ -16,7 +16,7 @@ import org.springframework.util.ObjectUtils;
 public class MemberService {
     private final MemberRepository memberRepository;
 
-    public Member findMemberById(Long id) {
+    public Member getMemberById(Long id) {
         return memberRepository.findById(id).orElseGet(() -> Member.builder().build());
     }
 

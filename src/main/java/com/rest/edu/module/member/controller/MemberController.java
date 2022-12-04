@@ -21,7 +21,7 @@ public class MemberController {
 
     @GetMapping("/users/{id}")
     public Member getMember(@PathVariable("id") Long id) {
-        Member member = memberService.findMemberById(id);
+        Member member = memberService.getMemberById(id);
         return member;
 
     }
